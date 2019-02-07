@@ -1,0 +1,1 @@
+sudo bash ./scripts/deploy.sh -cn "Primary" -pn "pyDataHub-0.1-py3.7.egg" --profile "narato-dashboard"

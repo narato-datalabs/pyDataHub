@@ -46,7 +46,10 @@ class EntityTypeBase:
         pass
 
     def getSystemFieldsSchema(self):
-        return []
+        return [
+            StructField("HASHKEY", StringType(), False),
+            StructField("LOADDATE", StringType(), False)
+        ]
 
     def getBusinessFieldsSchema(self):
         return []
@@ -61,13 +64,6 @@ class Hub(EntityTypeBase):
         trackingSatellite = RecordTrackingSatellite(self, dataVault)
         self.satellites[trackingSatellite.name] = trackingSatellite
 
-    def getSystemFieldsSchema(self):
-        return [
-            StructField(self.name + "HASHKEY", StringType(), False),
-            StructField("LOADDATE", TimestampType(), False),
-            StructField("RECORDSOURCE", StringType(), False),
-        ]
-
 
 class Satellite(EntityTypeBase):
 
@@ -78,9 +74,7 @@ class Satellite(EntityTypeBase):
         self.initialize()
 
     def getSystemFieldsSchema(self):
-        return [
-            StructField(self.hub.name + "HASHKEY", StringType(), False),
-            StructField("LOADDATE", TimestampType(), False),
+        return super().getSystemFieldsSchema() + [
             StructField("RECORDSOURCE", StringType(), False),
         ]
 

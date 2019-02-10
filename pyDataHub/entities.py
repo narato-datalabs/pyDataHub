@@ -35,7 +35,10 @@ class EntityTypeBase:
             self.dataFrame.write.save(
                 self.storagePath, format="parquet", mode='overwrite')
         else:
-            self.dataFrame = spark.read.parquet(self.storagePath)
+            self.refreshData()
+
+    def refreshData(self):
+        self.dataFrame = spark.read.parquet(self.storagePath)
 
     def buildDataFrame(self):
         self._fieldList = self.getSystemFieldsSchema() + self.getBusinessFieldsSchema()
@@ -61,8 +64,8 @@ class Hub(EntityTypeBase):
         super().__init__(name, dataVault)
         self.storagePath = self.dataVault.hubsPath + "/" + self.name
         self.initialize()
-        trackingSatellite = RecordTrackingSatellite(self, dataVault)
-        self.satellites[trackingSatellite.name] = trackingSatellite
+    #    trackingSatellite = RecordTrackingSatellite(self, dataVault)
+    #    self.satellites[trackingSatellite.name] = trackingSatellite
 
 
 class Satellite(EntityTypeBase):

@@ -11,7 +11,7 @@ spark = SparkSession \
 
 class ProcessItem:
 
-    def _init(self, name, transformFunction, processFunction, entity):
+    def __init__(self, name, transformFunction, processFunction, entity):
         self.name = name
         self.transformFunction = transformFunction
         self.processFunction = processFunction
@@ -35,7 +35,7 @@ class ProcessorBase:
         stagingDF = self._getStagingData(batchName)
 
         for item in self.processItems:
-            dataToProcessDF = item.transformFunction(stagingDF)
+            dataToProcessDF = item.transformFunction(stagingDF, item.entity)
             item.processFunction(dataToProcessDF, item.entity)
 
     def buildContentToBeHashed(self):
@@ -48,6 +48,7 @@ class ProcessorBase:
             entity.dataFrame, joinExpression, "left_anti")
         newHubEntries.write.save(
             entity.storagePath, format="parquet", mode="append")
+        entity.refreshData()
 
     def processSatellite(self, dataToBeProcessed, entity):
         joinExpression = entity.dataFrame["HASHKEY"] == dataToBeProcessed["HASHKEY"]

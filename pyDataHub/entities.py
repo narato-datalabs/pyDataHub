@@ -79,6 +79,7 @@ class Satellite(EntityTypeBase):
     def getSystemFieldsSchema(self):
         return super().getSystemFieldsSchema() + [
             StructField("RECORDSOURCE", StringType(), False),
+            StructField("HASHDIFF", StringType(), False),
         ]
 
 

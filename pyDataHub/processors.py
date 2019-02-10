@@ -1,5 +1,6 @@
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, Window
 from pyspark.sql.types import StructType
+from pyspark.sql.functions import col, first
 from .entities import Hub
 
 spark = SparkSession \
@@ -51,6 +52,16 @@ class ProcessorBase:
         entity.refreshData()
 
     def processSatellite(self, dataToBeProcessed, entity):
-        joinExpression = entity.dataFrame["HASHKEY"] == dataToBeProcessed["HASHKEY"]
+        ws = Window().partitionBy(entity.dataFrame["HASHKEY"]).orderBy(
+            entity.dataFrame["LOADDATE"].desc())
+        existingMostRecentHashesByHashKeyDF = entity.dataFrame.select(
+            col("HASHKEY"), first("HASHDIFF").over(ws).alias("HASHDIFF")).distinct()
 
-        # to do: process satellite contents
+        joinExpression = (existingMostRecentHashesByHashKeyDF["HASHKEY"] == dataToBeProcessed[
+            "HASHKEY"]) & (existingMostRecentHashesByHashKeyDF["HASHDIFF"] == dataToBeProcessed["HASHDIFF"])
+
+        newHubEntries = dataToBeProcessed.join(
+            existingMostRecentHashesByHashKeyDF, joinExpression, "left_anti")
+        newHubEntries.write.save(
+            entity.storagePath, format="parquet", mode="append")
+        entity.refreshData()
